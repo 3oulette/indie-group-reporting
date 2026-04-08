@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0c0f13;color:#eaeff5;font-family:'DM Sans',sans-serif}
+body{background:#f5f3ef;color:#1a1a1a;font-family:'DM Sans',sans-serif}
 ::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:#0c0f13}
-::-webkit-scrollbar-thumb{background:#1E2530;border-radius:3px}
+::-webkit-scrollbar-track{background:#f5f3ef}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 input,select,button{font-family:inherit}
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
