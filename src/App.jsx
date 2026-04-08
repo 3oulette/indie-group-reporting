@@ -111,18 +111,6 @@ function shiftDateN1(dateStr) {
   const d = new Date(dateStr); d.setFullYear(d.getFullYear() - 1);
   return d.toISOString().split("T")[0];
 }
-
-// ── STYLES ──
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:${T.bg}; color:${T.text}; font-family:'DM Sans',sans-serif; }
-  ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:${T.bg}; }
-  ::-webkit-scrollbar-thumb { background:${T.border}; border-radius:3px; }
-  input, select, button { font-family:inherit; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
-  .fade-in { animation: fadeIn 0.4s ease both; }
-  .slide-in { animation: slideIn 0.3s ease both; }
-
 // ── COMPONENTS ──
 const Badge = ({ value, inverse }) => {
   if (value == null || !isFinite(value)) return <span style={{ color: T.textMuted }}>–</span>;
