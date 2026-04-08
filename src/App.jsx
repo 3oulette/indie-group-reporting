@@ -1,681 +1,78 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 
-// ── FONTS ──
-
-// ── THEME ──
-const T = {
-  bg: "#0B0E11", card: "#13171C", cardHover: "#191E25", border: "#1E2530",
-  accent: "#C8A96E", accentDim: "rgba(200,169,110,0.15)", accentText: "#E8D5A8",
-  text: "#E8ECF1", textDim: "#8A94A3", textMuted: "#5A6373",
-  green: "#4ADE80", greenBg: "rgba(74,222,128,0.1)",
-  red: "#F87171", redBg: "rgba(248,113,113,0.1)",
-  blue: "#60A5FA", blueBg: "rgba(96,165,250,0.1)",
-  orange: "#FB923C", orangeBg: "rgba(251,146,60,0.1)",
-};
-
-// ── DATA ──
-const ESTABLISHMENTS = [
-  { id: "pablo", name: "Pablo ST", group: "ete", coefLiquide: 0.27, coefSolide: 0.24, loyerAnnuel: 133337, loyerType: "variable", loyerPctCA: 0.05, igAnnuel: 600000, igType: "variable", igPctCA: 0.12, autresChargesAnnuel: 1166844, dateOuv: "2026-04-06", dateFerm: "2026-10-15", nbrJours: 193 },
-  { id: "indie_beach", name: "Indie Beach", group: "ete", coefLiquide: 0.19, coefSolide: 0.19, loyerAnnuel: 162279, loyerType: "fixe", igAnnuel: 720000, igType: "variable", igPctCA: 0.10, autresChargesAnnuel: 2405296, dateOuv: "2026-04-18", dateFerm: "2026-10-04", nbrJours: 169 },
-  { id: "playamigos", name: "Playamigos", group: "ete", coefLiquide: 0.17, coefSolide: 0.17, loyerAnnuel: 162279, loyerType: "fixe", igAnnuel: 154299, igType: "fixe", autresChargesAnnuel: 571181, dateOuv: "2026-04-10", dateFerm: "2026-10-05", nbrJours: 178 },
-  { id: "cherry", name: "Cherry", group: "ete", coefLiquide: 0.24, coefSolide: 0.24, loyerAnnuel: 148000, loyerType: "fixe", igAnnuel: 126840, igType: "fixe", autresChargesAnnuel: 324703, dateOuv: "2026-04-15", dateFerm: "2026-10-12", nbrJours: 180 },
-  { id: "sauvageonne", name: "La Sauvageonne", group: "ete", coefLiquide: 0.22, coefSolide: 0.22, loyerAnnuel: 40000, loyerType: "fixe", igAnnuel: 154560, igType: "variable", igPctCA: 0.08, autresChargesAnnuel: 361693, dateOuv: "2026-04-10", dateFerm: "2026-10-05", nbrJours: 178 },
-  { id: "ormeau", name: "Ormeau", group: "ete", coefLiquide: 0.23, coefSolide: 0.23, loyerAnnuel: 234315, loyerType: "fixe", igAnnuel: 71329, igType: "fixe", autresChargesAnnuel: 239061, dateOuv: "2026-04-01", dateFerm: "2026-10-31", nbrJours: 213 },
-  { id: "cherry_paris", name: "Cherry Paris", group: "ete", coefLiquide: 0.22, coefSolide: 0.22, loyerAnnuel: 85000, loyerType: "fixe", igAnnuel: 90000, igType: "fixe", autresChargesAnnuel: 180000, dateOuv: "2026-05-01", dateFerm: "2026-09-30", nbrJours: 153 },
-  { id: "pablo_sbh_resto", name: "Pablo SBH Resto", group: "hiver", coefLiquide: 0.20, coefSolide: 0.20, loyerAnnuel: 0, loyerType: "fixe", igAnnuel: 0, igType: "fixe", autresChargesAnnuel: 450000, dateOuv: "2025-11-01", dateFerm: "2026-04-30", nbrJours: 181 },
-  { id: "sauva_megeve", name: "Sauva Mégève", group: "hiver", coefLiquide: 0.25, coefSolide: 0.25, loyerAnnuel: 120000, loyerType: "fixe", igAnnuel: 80000, igType: "fixe", autresChargesAnnuel: 280000, dateOuv: "2025-12-10", dateFerm: "2026-03-30", nbrJours: 110 },
-  { id: "cat_club", name: "Cat Club", group: "hiver", coefLiquide: 0.30, coefSolide: 0.30, loyerAnnuel: 95000, loyerType: "fixe", igAnnuel: 60000, igType: "fixe", autresChargesAnnuel: 200000, dateOuv: "2025-12-15", dateFerm: "2026-03-25", nbrJours: 100 },
-  { id: "cafe_flora", name: "Café Flora", group: "ete", coefLiquide: 0.22, coefSolide: 0.22, loyerAnnuel: 0, loyerType: "fixe", igAnnuel: 0, igType: "fixe", autresChargesAnnuel: 150000, dateOuv: "2026-04-15", dateFerm: "2026-10-15", nbrJours: 183 },
+// ── DATA & CONFIG ──
+const INIT_ESTABLISHMENTS = [
+  { id:"pablo", name:"Pablo ST", group:"ete", coefLiquide:0.27, coefSolide:0.24, coefLiquideN1:0.27, coefSolideN1:0.24, coefLiquideBudget:0.25, coefSolideBudget:0.23, loyerAnnuel:133337, loyerType:"variable", loyerPctCA:0.05, igAnnuel:600000, igType:"variable", igPctCA:0.12, autresChargesAnnuel:1166844, dateOuv:"2026-04-06", dateFerm:"2026-10-15", nbrJours:193 },
+  { id:"indie_beach", name:"Indie Beach", group:"ete", coefLiquide:0.19, coefSolide:0.19, coefLiquideN1:0.18, coefSolideN1:0.19, coefLiquideBudget:0.18, coefSolideBudget:0.18, loyerAnnuel:162279, loyerType:"fixe", igAnnuel:720000, igType:"variable", igPctCA:0.10, autresChargesAnnuel:2405296, dateOuv:"2026-04-18", dateFerm:"2026-10-04", nbrJours:169 },
+  { id:"playamigos", name:"Playamigos", group:"ete", coefLiquide:0.17, coefSolide:0.17, coefLiquideN1:0.17, coefSolideN1:0.17, coefLiquideBudget:0.16, coefSolideBudget:0.16, loyerAnnuel:162279, loyerType:"fixe", igAnnuel:154299, igType:"fixe", autresChargesAnnuel:571181, dateOuv:"2026-04-10", dateFerm:"2026-10-05", nbrJours:178 },
+  { id:"cherry", name:"Cherry", group:"ete", coefLiquide:0.24, coefSolide:0.24, coefLiquideN1:0.24, coefSolideN1:0.24, coefLiquideBudget:0.23, coefSolideBudget:0.23, loyerAnnuel:148000, loyerType:"fixe", igAnnuel:126840, igType:"fixe", autresChargesAnnuel:324703, dateOuv:"2026-04-15", dateFerm:"2026-10-12", nbrJours:180 },
+  { id:"sauvageonne", name:"La Sauvageonne", group:"ete", coefLiquide:0.22, coefSolide:0.22, coefLiquideN1:0.21, coefSolideN1:0.21, coefLiquideBudget:0.21, coefSolideBudget:0.21, loyerAnnuel:40000, loyerType:"fixe", igAnnuel:154560, igType:"variable", igPctCA:0.08, autresChargesAnnuel:361693, dateOuv:"2026-04-10", dateFerm:"2026-10-05", nbrJours:178 },
+  { id:"ormeau", name:"Ormeau", group:"ete", coefLiquide:0.23, coefSolide:0.23, coefLiquideN1:0.25, coefSolideN1:0.25, coefLiquideBudget:0.23, coefSolideBudget:0.23, loyerAnnuel:234315, loyerType:"fixe", igAnnuel:71329, igType:"fixe", autresChargesAnnuel:239061, dateOuv:"2026-04-01", dateFerm:"2026-10-31", nbrJours:213 },
+  { id:"cherry_paris", name:"Cherry Paris", group:"ete", coefLiquide:0.22, coefSolide:0.22, coefLiquideN1:0.22, coefSolideN1:0.22, coefLiquideBudget:0.21, coefSolideBudget:0.21, loyerAnnuel:85000, loyerType:"fixe", igAnnuel:90000, igType:"fixe", autresChargesAnnuel:180000, dateOuv:"2026-05-01", dateFerm:"2026-09-30", nbrJours:153 },
+  { id:"pablo_sbh", name:"Pablo SBH", group:"hiver", coefLiquide:0.20, coefSolide:0.20, coefLiquideN1:0.20, coefSolideN1:0.20, coefLiquideBudget:0.19, coefSolideBudget:0.19, loyerAnnuel:0, loyerType:"fixe", igAnnuel:0, igType:"fixe", autresChargesAnnuel:450000, dateOuv:"2025-11-01", dateFerm:"2026-04-30", nbrJours:181 },
+  { id:"sauva_megeve", name:"Sauva Megeve", group:"hiver", coefLiquide:0.25, coefSolide:0.25, coefLiquideN1:0.25, coefSolideN1:0.25, coefLiquideBudget:0.24, coefSolideBudget:0.24, loyerAnnuel:120000, loyerType:"fixe", igAnnuel:80000, igType:"fixe", autresChargesAnnuel:280000, dateOuv:"2025-12-10", dateFerm:"2026-03-30", nbrJours:110 },
+  { id:"cat_club", name:"Cat Club", group:"hiver", coefLiquide:0.30, coefSolide:0.30, coefLiquideN1:0.30, coefSolideN1:0.30, coefLiquideBudget:0.28, coefSolideBudget:0.28, loyerAnnuel:95000, loyerType:"fixe", igAnnuel:60000, igType:"fixe", autresChargesAnnuel:200000, dateOuv:"2025-12-15", dateFerm:"2026-03-25", nbrJours:100 },
+  { id:"cafe_flora", name:"Cafe Flora", group:"ete", coefLiquide:0.22, coefSolide:0.22, coefLiquideN1:0.22, coefSolideN1:0.22, coefLiquideBudget:0.21, coefSolideBudget:0.21, loyerAnnuel:0, loyerType:"fixe", igAnnuel:0, igType:"fixe", autresChargesAnnuel:150000, dateOuv:"2026-04-15", dateFerm:"2026-10-15", nbrJours:183 },
 ];
-
-const USERS = [
-  { login: "antoine", password: "admin", name: "Antoine Costa", role: "admin", establishments: ESTABLISHMENTS.map(e => e.id) },
-  { login: "associe1", password: "demo", name: "Associé Pablo", role: "viewer", establishments: ["pablo", "playamigos", "cherry", "sauvageonne", "ormeau", "indie_beach", "cherry_paris", "cafe_flora"] },
-  { login: "associe2", password: "demo", name: "Associé SBH", role: "viewer", establishments: ["pablo_sbh_resto", "cat_club", "sauva_megeve"] },
+const INIT_USERS = [
+  { login:"antoine",password:"admin",name:"Antoine Costa",role:"admin",establishments:INIT_ESTABLISHMENTS.map(e=>e.id) },
+  { login:"associe1",password:"demo",name:"Associe Ete",role:"viewer",establishments:["pablo","playamigos","cherry","sauvageonne","ormeau","indie_beach","cherry_paris","cafe_flora"] },
+  { login:"associe2",password:"demo",name:"Associe Hiver",role:"viewer",establishments:["pablo_sbh","cat_club","sauva_megeve"] },
 ];
+function genDaily(est,year){const data=[];const s=new Date(est.dateOuv.replace("2026",String(year)).replace("2025",String(year-1)));const e=new Date(est.dateFerm.replace("2026",String(year)).replace("2025",String(year-1)));if(isNaN(s)||isNaN(e))return data;const d=new Date(s);const bf=year===2025?0.85:1;while(d<=e){const dow=d.getDay(),m=d.getMonth(),hi=m>=5&&m<=7,we=dow===0||dow===5||dow===6;let base=hi?(we?35000:18000):(we?15000:7000);const mult={indie_beach:2.5,pablo:1.8,pablo_sbh:3,sauva_megeve:1.2,cat_club:1.2,cafe_flora:0.6};base*=(mult[est.id]||1)*bf*(0.7+Math.random()*0.6);const ca=Math.round(base),cvtM=80+Math.random()*80,cvts=Math.max(1,Math.round(ca/cvtM));const ms=Math.round(ca*(0.18+Math.random()*0.08)),extra=Math.round(ca*Math.random()*0.04),log=Math.round(50+Math.random()*200);const isDJ=(est.id==="indie_beach"||est.id==="cat_club")&&we;const dj=isDJ?Math.round(1000+Math.random()*8000):0,secu=dj>0?Math.round(dj*0.15):0;const light=(est.id==="cat_club"||est.id==="sauva_megeve")?Math.round(200+Math.random()*300):0;const hotel=(est.id==="cat_club"||est.id==="sauva_megeve")?Math.round(100+Math.random()*400):0;data.push({date:d.toISOString().split("T")[0],ca,couverts:cvts,cvtMoyen:Math.round(cvtM*100)/100,ms,extra,logement:log,dj,secu,light,hotel});d.setDate(d.getDate()+1);}return data;}
+function buildDemo(ests){const D={};ests.forEach(est=>{const n=genDaily(est,2026),n1=genDaily(est,2025);const budget=n1.map(d=>({...d,ca:Math.round(d.ca*1.1),ms:Math.round(d.ms*1.05),extra:Math.round(d.extra*1.05),couverts:Math.round(d.couverts*1.1)}));const previCA=budget.map(d=>({date:d.date,previ:d.ca}));D[est.id]={n,n1,budget,previCA};});return D;}
+const fmt=n=>n==null?"\u2013":new Intl.NumberFormat("fr-FR",{maximumFractionDigits:0}).format(n);
+const fmtK=n=>n==null?"\u2013":Math.abs(n)>=1000?(n/1000).toFixed(1).replace(".",",")+"\u202Fk":fmt(n);
+const fmtPct=n=>n==null||!isFinite(n)?"\u2013":(n*100).toFixed(1)+"\u202F%";
+const fmtEur=n=>n==null?"\u2013":fmt(n)+"\u202F\u20AC";
+const pv=(n,o)=>(!o||o===0)?null:(n-o)/o;
+const sm=(a,f)=>a.reduce((s,d)=>s+(d[f]||0),0);
+const fdr=(a,f,t)=>a.filter(d=>d.date>=f&&d.date<=t);
+function wr(dt){const d=new Date(dt),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);const m=new Date(d);m.setDate(diff);const s=new Date(m);s.setDate(m.getDate()+6);return[m.toISOString().split("T")[0],s.toISOString().split("T")[0]];}
+function mr(dt){const d=new Date(dt);return[new Date(d.getFullYear(),d.getMonth(),1).toISOString().split("T")[0],new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split("T")[0]];}
+function sN1(s){const d=new Date(s);d.setFullYear(d.getFullYear()-1);return d.toISOString().split("T")[0];}
+function calcKPI(est,data,from,to){const nD=fdr(data.n,from,to),f1=sN1(from),t1=sN1(to),n1D=fdr(data.n1,f1,t1),bD=fdr(data.budget||[],f1,t1),pD=fdr(data.previCA||[],f1,t1);const ca=sm(nD,"ca"),caN1=sm(n1D,"ca"),caP=sm(pD,"previ")||sm(bD,"ca");const ms=sm(nD,"ms"),ex=sm(nD,"extra"),lo=sm(nD,"logement"),msT=ms+ex+lo;const msN1=sm(n1D,"ms")+sm(n1D,"extra")+sm(n1D,"logement");const djS=sm(nD,"dj")+sm(nD,"secu")+sm(nD,"light")+sm(nD,"hotel");const djN1=sm(n1D,"dj")+sm(n1D,"secu")+sm(n1D,"light")+sm(n1D,"hotel");const nJ=nD.length||1;const ach=Math.round(ca*est.coefSolide),achN1=Math.round(caN1*est.coefSolideN1);const loy=est.loyerType==="variable"?Math.round(ca*(est.loyerPctCA||.05)):Math.round(est.loyerAnnuel/est.nbrJours*nJ);const ig=est.igType==="variable"?Math.round(ca*(est.igPctCA||.1)):Math.round(est.igAnnuel/est.nbrJours*nJ);const aut=Math.round(est.autresChargesAnnuel/est.nbrJours*nJ);const loyN1=est.loyerType==="variable"?Math.round(caN1*(est.loyerPctCA||.05)):Math.round(est.loyerAnnuel/est.nbrJours*nJ);const igN1=est.igType==="variable"?Math.round(caN1*(est.igPctCA||.1)):Math.round(est.igAnnuel/est.nbrJours*nJ);const ebitda=ca-msT-djS-ach-loy-ig-aut;const ebitdaN1=caN1-msN1-djN1-achN1-loyN1-igN1-aut;const msB=Math.round(caP*.22),achB=Math.round(caP*est.coefSolideBudget);const ebitdaB=caP-msB-achB-loyN1-igN1-aut-Math.round(djN1*1.05);const cvt=sm(nD,"couverts"),cvtN1=sm(n1D,"couverts");const tm=cvt?ca/cvt:0,tmN1=cvtN1?caN1/cvtN1:0;const daily=nD.slice(-14).map(d=>d.ca);return{ca,caN1,caP,ms:msT,msRaw:ms,ex,lo,msN1,msPct:ca?msT/ca:0,msPctN1:caN1?msN1/caN1:0,djS,djN1,ach,achN1,loy,loyN1,ig,igN1,aut,ebitda,ebitdaN1,ebitdaB,msB,achB,cvt,cvtN1,tm:Math.round(tm),tmN1:Math.round(tmN1),daily,nJ};}
+const C={bg:"#0c0f13",bg2:"#111519",gl:"rgba(255,255,255,0.04)",gb:"rgba(255,255,255,0.08)",gh:"rgba(255,255,255,0.07)",ac:"#d4a853",ad:"rgba(212,168,83,0.12)",tx:"#eaeff5",dm:"#7b8594",mu:"#4a5568",gn:"#34d399",gnB:"rgba(52,211,153,0.1)",rd:"#f87171",rdB:"rgba(248,113,113,0.1)",bl:"#60a5fa",or:"#fb923c"};
+const Badge=({value:v,inverse:inv,big:b})=>{if(v==null||!isFinite(v))return <span style={{color:C.mu,fontSize:b?14:12}}>{"\u2013"}</span>;const p=inv?v<0:v>0,n=inv?v>0:v<0;return<span style={{display:"inline-flex",alignItems:"center",gap:3,padding:b?"3px 10px":"2px 7px",borderRadius:8,fontSize:b?13:11,fontWeight:600,background:p?C.gnB:n?C.rdB:"rgba(96,165,250,0.1)",color:p?C.gn:n?C.rd:C.bl}}>{p?"\u25B2":n?"\u25BC":"="} {fmtPct(Math.abs(v))}</span>;};
+const Spark=({data:d,h=40})=>{if(!d||d.length<2)return null;const mx=Math.max(...d),mn=Math.min(...d),r=mx-mn||1,w=140;const pts=d.map((v,i)=>`${(i/(d.length-1))*w},${h-((v-mn)/r)*(h-4)-2}`).join(" ");return<svg width={w} height={h} style={{display:"block"}}><polyline points={pts} fill="none" stroke={C.ac} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.8"/></svg>;};
+const GC=({children:ch,style:s,onClick:oc,hover:hv=true})=><div onClick={oc} style={{background:C.gl,borderRadius:16,border:`1px solid ${C.gb}`,padding:20,backdropFilter:"blur(20px)",transition:"all 0.25s",cursor:oc?"pointer":"default",...s}} onMouseEnter={e=>{if(hv&&oc){e.currentTarget.style.background=C.gh;e.currentTarget.style.borderColor="rgba(212,168,83,0.2)";e.currentTarget.style.transform="translateY(-2px)";}}} onMouseLeave={e=>{e.currentTarget.style.background=C.gl;e.currentTarget.style.borderColor=C.gb;e.currentTarget.style.transform="none";}}>{ch}</div>;
+const Btn=({children:ch,primary:pr,small:sm,style:s,...p})=><button{...p}style={{padding:sm?"6px 14px":"10px 20px",borderRadius:10,border:pr?"none":`1px solid ${C.gb}`,background:pr?C.ac:"transparent",color:pr?C.bg:C.dm,fontSize:sm?12:13,fontWeight:600,cursor:"pointer",transition:"all 0.2s",fontFamily:"inherit",...s}}>{ch}</button>;
+const Fld=({label:l,children:ch})=><div style={{display:"flex",flexDirection:"column",gap:4}}><label style={{fontSize:11,color:C.mu,textTransform:"uppercase",letterSpacing:1}}>{l}</label>{ch}</div>;
+const Inp=({style:s,...p})=><input{...p}style={{padding:"8px 12px",borderRadius:8,border:`1px solid ${C.gb}`,background:C.bg,color:C.tx,fontSize:14,outline:"none",width:"100%",fontFamily:"inherit",...s}}/>;
+const Sel=({style:s,...p})=><select{...p}style={{padding:"8px 12px",borderRadius:8,border:`1px solid ${C.gb}`,background:C.bg,color:C.tx,fontSize:14,outline:"none",fontFamily:"inherit",...s}}/>;
+const Modal=({title:t,onClose:oc,children:ch,wide:w})=><div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}} onClick={e=>{if(e.target===e.currentTarget)oc();}}><div style={{background:C.bg2,border:`1px solid ${C.gb}`,borderRadius:20,padding:28,width:w?680:440,maxWidth:"95vw",maxHeight:"85vh",overflow:"auto"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}><h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:C.ac}}>{t}</h3><button onClick={oc} style={{background:"none",border:"none",color:C.dm,fontSize:22,cursor:"pointer",lineHeight:1}}>x</button></div>{ch}</div></div>;
 
-// Generate demo daily data
-function generateDailyData(est, year) {
-  const data = [];
-  const startStr = est.dateOuv.replace("2026", String(year));
-  const endStr = est.dateFerm.replace("2026", String(year));
-  const start = new Date(startStr); const end = new Date(endStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return data;
-  const d = new Date(start);
-  const baseFactor = year === 2025 ? 0.85 : 1;
-  while (d <= end) {
-    const dow = d.getDay();
-    const month = d.getMonth();
-    const isHighSeason = month >= 5 && month <= 7;
-    const isWeekend = dow === 0 || dow === 5 || dow === 6;
-    let baseCA = isHighSeason ? (isWeekend ? 35000 : 18000) : (isWeekend ? 15000 : 7000);
-    if (est.id === "indie_beach") baseCA *= 2.5;
-    if (est.id === "pablo") baseCA *= 1.8;
-    if (est.id === "pablo_sbh_resto") baseCA *= 3;
-    if (est.id === "sauva_megeve" || est.id === "cat_club") baseCA *= 1.2;
-    if (est.id === "cafe_flora") baseCA *= 0.6;
-    const noise = 0.7 + Math.random() * 0.6;
-    const ca = Math.round(baseCA * baseFactor * noise);
-    const cvtMoyen = 80 + Math.random() * 80;
-    const couverts = Math.max(1, Math.round(ca / cvtMoyen));
-    const ms = Math.round(ca * (0.18 + Math.random() * 0.08));
-    const extra = Math.round(ca * (Math.random() * 0.04));
-    const logement = Math.round(50 + Math.random() * 200);
-    const dj = (est.id === "indie_beach" || est.id === "cat_club") && isWeekend ? Math.round(1000 + Math.random() * 8000) : 0;
-    const secu = dj > 0 ? Math.round(dj * 0.15) : 0;
-    const light = (est.id === "cat_club" || est.id === "sauva_megeve") ? Math.round(200 + Math.random() * 300) : 0;
-    const hotel = (est.id === "cat_club" || est.id === "sauva_megeve") ? Math.round(100 + Math.random() * 400) : 0;
-    const dateStr = d.toISOString().split("T")[0];
-    data.push({ date: dateStr, ca, couverts, cvtMoyen: Math.round(cvtMoyen * 100) / 100, ms, extra, logement, dj, secu, light, hotel });
-    d.setDate(d.getDate() + 1);
-  }
-  return data;
-}
+function LoginScreen({onLogin,users}){const[l,setL]=useState("");const[p,setP]=useState("");const[err,setErr]=useState("");const go=()=>{const u=users.find(u=>u.login===l&&u.password===p);u?onLogin(u):setErr("Identifiants incorrects");};return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:`radial-gradient(ellipse at 30% 20%,rgba(212,168,83,0.06),transparent 50%),${C.bg}`}}><div style={{width:380,maxWidth:"90vw"}}><div style={{textAlign:"center",marginBottom:40}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:36,fontWeight:700,color:C.ac,letterSpacing:3}}>INDIE GROUP</div><div style={{fontSize:12,color:C.mu,marginTop:8,letterSpacing:4,textTransform:"uppercase"}}>Reporting Dashboard</div></div><GC hover={false}><div style={{display:"flex",flexDirection:"column",gap:16}}><Fld label="Identifiant"><Inp value={l} onChange={e=>setL(e.target.value)} placeholder="antoine" onKeyDown={e=>e.key==="Enter"&&go()}/></Fld><Fld label="Mot de passe"><Inp type="password" value={p} onChange={e=>setP(e.target.value)} placeholder="......" onKeyDown={e=>e.key==="Enter"&&go()}/></Fld>{err&&<div style={{color:C.rd,fontSize:13}}>{err}</div>}<Btn primary onClick={go} style={{marginTop:8,letterSpacing:1}}>CONNEXION</Btn><div style={{fontSize:11,color:C.mu,textAlign:"center"}}>Demo: antoine/admin | associe1/demo | associe2/demo</div></div></GC></div></div>);}
 
-const DEMO_DATA = {};
-ESTABLISHMENTS.forEach(est => {
-  DEMO_DATA[est.id] = { n: generateDailyData(est, 2026), n1: generateDailyData(est, 2025) };
-});
+function DateBar({from,to,onRange,compMode,setCompMode}){const today=new Date().toISOString().split("T")[0];const presets=[{l:"Aujourd'hui",fn:()=>onRange(today,today)},{l:"Semaine",fn:()=>{const[a,b]=wr(today);onRange(a,b);}},{l:"Mois",fn:()=>{const[a,b]=mr(today);onRange(a,b);}},{l:"Saison",fn:()=>onRange("2026-04-01","2026-10-31")}];const modes=[{id:"periode",l:"Periode"},{id:"cumule",l:"Cumule"},{id:"atterrissage",l:"Atterrissage"}];return(<div style={{display:"flex",flexWrap:"wrap",gap:10,alignItems:"flex-end",marginBottom:24}}><Fld label="Du"><Inp type="date" value={from} onChange={e=>onRange(e.target.value,to)} style={{width:150}}/></Fld><Fld label="Au"><Inp type="date" value={to} onChange={e=>onRange(from,e.target.value)} style={{width:150}}/></Fld><div style={{display:"flex",gap:6,flexWrap:"wrap",alignSelf:"flex-end"}}>{presets.map(p=><Btn key={p.l} small onClick={p.fn}>{p.l}</Btn>)}</div><div style={{marginLeft:"auto",display:"flex",gap:4,alignSelf:"flex-end",background:C.gl,borderRadius:10,padding:3,border:`1px solid ${C.gb}`}}>{modes.map(m=><button key={m.id} onClick={()=>setCompMode(m.id)} style={{padding:"5px 12px",borderRadius:8,border:"none",fontSize:12,fontWeight:500,cursor:"pointer",transition:"all 0.2s",fontFamily:"inherit",background:compMode===m.id?C.ad:"transparent",color:compMode===m.id?C.ac:C.dm}}>{m.l}</button>)}</div></div>);}
 
-// Generate budget = N-1 * 1.1
-ESTABLISHMENTS.forEach(est => {
-  DEMO_DATA[est.id].budget = DEMO_DATA[est.id].n1.map(d => ({
-    ...d, ca: Math.round(d.ca * 1.1), ms: Math.round(d.ms * 1.05),
-    extra: Math.round(d.extra * 1.05), couverts: Math.round(d.couverts * 1.1),
-  }));
-  DEMO_DATA[est.id].previCA = DEMO_DATA[est.id].budget.map(d => ({ date: d.date, previ: d.ca }));
-});
+function EstCard({est,kpis:k,onClick}){const em=k.ca?k.ebitda/k.ca:0;return(<GC onClick={onClick} style={{display:"flex",flexDirection:"column",gap:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div><div style={{fontSize:16,fontWeight:600,color:C.tx}}>{est.name}</div><div style={{fontSize:11,color:C.mu,marginTop:2}}>{est.group==="ete"?"Saison ete":"Saison hiver"}</div></div><Badge value={pv(k.ca,k.caN1)} big/></div><div><div style={{fontSize:11,color:C.dm,marginBottom:4}}>CA</div><div style={{display:"flex",alignItems:"baseline",gap:8}}><span style={{fontSize:26,fontWeight:700,fontVariantNumeric:"tabular-nums",color:C.tx}}>{fmtK(k.ca)}</span><span style={{fontSize:12,color:C.mu}}>N-1: {fmtK(k.caN1)}</span></div></div><Spark data={k.daily}/><div style={{display:"flex",gap:16}}><div style={{flex:1}}><div style={{fontSize:11,color:C.dm}}>MS</div><div style={{fontSize:15,fontWeight:600,fontVariantNumeric:"tabular-nums"}}>{fmtPct(k.msPct)}</div><div style={{fontSize:10,color:C.mu}}>N-1: {fmtPct(k.msPctN1)}</div></div><div style={{flex:1}}><div style={{fontSize:11,color:C.dm}}>EBITDA</div><div style={{fontSize:15,fontWeight:600,fontVariantNumeric:"tabular-nums",color:k.ebitda<0?C.rd:C.gn}}>{fmtK(k.ebitda)}</div><div style={{fontSize:10,color:C.mu}}>{fmtPct(em)} marge</div></div><div style={{flex:1}}><div style={{fontSize:11,color:C.dm}}>Couverts</div><div style={{fontSize:15,fontWeight:600,fontVariantNumeric:"tabular-nums"}}>{fmt(k.cvt)}</div><div style={{fontSize:10,color:C.mu}}>TM: {fmt(k.tm)}E</div></div></div><div style={{textAlign:"right"}}><span style={{fontSize:11,color:C.ac,fontWeight:500}}>Voir le detail &rarr;</span></div></GC>);}
 
-// ── UTILS ──
-const fmt = (n) => n == null ? "–" : new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n);
-const fmtPct = (n) => n == null || !isFinite(n) ? "–" : (n * 100).toFixed(1) + "%";
-const fmtEur = (n) => n == null ? "–" : fmt(n) + " €";
-const pctVar = (n, n1) => (!n1 || n1 === 0) ? null : (n - n1) / n1;
-const sumField = (arr, field) => arr.reduce((s, d) => s + (d[field] || 0), 0);
-const filterByDateRange = (arr, from, to) => arr.filter(d => d.date >= from && d.date <= to);
+function GroupBar({kpis:k}){const items=[{l:"CA Groupe",v:fmtEur(k.ca),b:pv(k.ca,k.caN1),s:"Previ: "+fmtEur(k.caP)},{l:"MS Groupe",v:fmtEur(k.ms),p:k.ca?fmtPct(k.ms/k.ca):null,s:"N-1: "+fmtPct(k.caN1?k.msN1/k.caN1:0)},{l:"EBITDA Groupe",v:fmtEur(k.ebitda),b:pv(k.ebitda,k.ebitdaN1),s:"Marge: "+(k.ca?fmtPct(k.ebitda/k.ca):"\u2013")}];return(<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:28}}>{items.map((x,i)=>(<GC key={i} hover={false} style={{padding:16}}><div style={{fontSize:11,color:C.mu,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>{x.l}</div><div style={{display:"flex",alignItems:"baseline",gap:8}}><span style={{fontSize:24,fontWeight:700,fontVariantNumeric:"tabular-nums"}}>{x.v}</span>{x.p&&<span style={{fontSize:13,color:C.dm}}>{x.p}</span>}</div><div style={{display:"flex",gap:8,alignItems:"center",marginTop:6}}>{x.b!=null&&<Badge value={x.b}/>}<span style={{fontSize:11,color:C.mu}}>{x.s}</span></div></GC>))}</div>);}
 
-function getWeekRange(date) {
-  const d = new Date(date); const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const mon = new Date(d); mon.setDate(diff);
-  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-  return [mon.toISOString().split("T")[0], sun.toISOString().split("T")[0]];
-}
-function getMonthRange(date) {
-  const d = new Date(date);
-  const first = new Date(d.getFullYear(), d.getMonth(), 1);
-  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return [first.toISOString().split("T")[0], last.toISOString().split("T")[0]];
-}
-function shiftDateN1(dateStr) {
-  const d = new Date(dateStr); d.setFullYear(d.getFullYear() - 1);
-  return d.toISOString().split("T")[0];
-}
-// ── COMPONENTS ──
-const Badge = ({ value, inverse }) => {
-  if (value == null || !isFinite(value)) return <span style={{ color: T.textMuted }}>–</span>;
-  const pos = inverse ? value < 0 : value > 0;
-  const neg = inverse ? value > 0 : value < 0;
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-      background: pos ? T.greenBg : neg ? T.redBg : T.blueBg,
-      color: pos ? T.green : neg ? T.red : T.blue,
-    }}>
-      {pos ? "▲" : neg ? "▼" : "–"} {fmtPct(Math.abs(value))}
-    </span>
-  );
-};
+function PnLRow({label:lb,n,n1,budget:bg,pctN,pctN1,inverse:inv,highlight:hl}){return(<div style={{display:"grid",gridTemplateColumns:"140px 1fr 60px 1fr 60px 1fr 70px 70px",gap:6,alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${C.gb}`,fontSize:13,background:hl?C.ad:"transparent",borderRadius:hl?8:0,paddingLeft:hl?8:0,paddingRight:hl?8:0}}><div style={{fontWeight:hl?700:500,color:hl?C.ac:C.tx}}>{lb}</div><div style={{textAlign:"right",fontVariantNumeric:"tabular-nums",fontWeight:600}}>{fmtEur(n)}</div><div style={{textAlign:"right",fontSize:11,color:C.dm}}>{pctN!=null?fmtPct(pctN):""}</div><div style={{textAlign:"right",fontVariantNumeric:"tabular-nums",color:C.dm}}>{fmtEur(n1)}</div><div style={{textAlign:"right",fontSize:11,color:C.mu}}>{pctN1!=null?fmtPct(pctN1):""}</div><div style={{textAlign:"right",fontVariantNumeric:"tabular-nums",color:C.mu}}>{fmtEur(bg)}</div><div style={{textAlign:"right"}}><Badge value={pv(n,n1)} inverse={inv}/></div><div style={{textAlign:"right"}}><Badge value={pv(n,bg)} inverse={inv}/></div></div>);}
 
-const Pill = ({ label, active, onClick }) => (
-  <button onClick={onClick} style={{
-    padding: "6px 14px", borderRadius: 8, border: `1px solid ${active ? T.accent : T.border}`,
-    background: active ? T.accentDim : "transparent", color: active ? T.accent : T.textDim,
-    fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
-  }}>{label}</button>
-);
+function DetailView({est,kpis:k,onBack}){return(<div><button onClick={onBack} style={{background:"none",border:"none",color:C.ac,fontSize:14,cursor:"pointer",fontWeight:500,marginBottom:16,fontFamily:"inherit"}}>&larr; Retour</button><div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:24}}><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:C.ac}}>{est.name}</h2><span style={{fontSize:12,color:C.mu}}>{k.nJ} jours</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:24}}>{[{l:"CA",v:k.ca,p:k.caN1,b:k.caP},{l:"Couverts",v:k.cvt,p:k.cvtN1,ne:true},{l:"Ticket Moyen",v:k.tm,p:k.tmN1},{l:"EBITDA",v:k.ebitda,p:k.ebitdaN1,b:k.ebitdaB}].map((x,i)=>(<GC key={i} hover={false} style={{padding:14}}><div style={{fontSize:11,color:C.mu,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>{x.l}</div><div style={{fontSize:22,fontWeight:700,fontVariantNumeric:"tabular-nums",color:x.l==="EBITDA"&&x.v<0?C.rd:C.tx}}>{x.ne?fmt(x.v):fmtEur(x.v)}</div><div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}><Badge value={pv(x.v,x.p)}/><span style={{fontSize:11,color:C.mu}}>vs N-1</span>{x.b!=null&&<><Badge value={pv(x.v,x.b)}/><span style={{fontSize:11,color:C.mu}}>vs Budget</span></>}</div></GC>))}</div><GC hover={false}><div style={{fontSize:12,color:C.mu,textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>P&L Detail</div><div style={{overflowX:"auto"}}><div style={{minWidth:700}}><div style={{display:"grid",gridTemplateColumns:"140px 1fr 60px 1fr 60px 1fr 70px 70px",gap:6,padding:"8px 0",borderBottom:`1px solid ${C.gb}`,fontSize:10,color:C.mu,textTransform:"uppercase",letterSpacing:1}}><div></div><div style={{textAlign:"right"}}>N</div><div style={{textAlign:"right"}}>%CA</div><div style={{textAlign:"right"}}>N-1</div><div style={{textAlign:"right"}}>%CA</div><div style={{textAlign:"right"}}>Budget</div><div style={{textAlign:"right"}}>vs N-1</div><div style={{textAlign:"right"}}>vs Budget</div></div><PnLRow label="CA" n={k.ca} n1={k.caN1} budget={k.caP}/><PnLRow label="MS (paie)" n={k.msRaw} n1={Math.round(k.msN1*.8)} budget={Math.round(k.msB*.8)} pctN={k.ca?k.msRaw/k.ca:null} inverse/><PnLRow label="Extras" n={k.ex} n1={Math.round(k.msN1*.05)} budget={Math.round(k.msB*.05)} pctN={k.ca?k.ex/k.ca:null} inverse/><PnLRow label="Logement" n={k.lo} n1={Math.round(k.msN1*.03)} budget={Math.round(k.msB*.03)} pctN={k.ca?k.lo/k.ca:null} inverse/><PnLRow label="MS+Log Total" n={k.ms} n1={k.msN1} budget={k.msB} pctN={k.ca?k.ms/k.ca:null} pctN1={k.caN1?k.msN1/k.caN1:null} inverse highlight/><PnLRow label="DJ/Secu/Light/Hotel" n={k.djS} n1={k.djN1} budget={Math.round(k.djN1*1.05)} pctN={k.ca?k.djS/k.ca:null} inverse/><PnLRow label="Achat MP" n={k.ach} n1={k.achN1} budget={k.achB} pctN={k.ca?k.ach/k.ca:null} pctN1={k.caN1?k.achN1/k.caN1:null} inverse/><PnLRow label="Loyer" n={k.loy} n1={k.loyN1} budget={k.loyN1} pctN={k.ca?k.loy/k.ca:null} inverse/><PnLRow label="IG" n={k.ig} n1={k.igN1} budget={k.igN1} pctN={k.ca?k.ig/k.ca:null} inverse/><PnLRow label="Autres Charges" n={k.aut} n1={k.aut} budget={k.aut} pctN={k.ca?k.aut/k.ca:null} inverse/><PnLRow label="EBITDA" n={k.ebitda} n1={k.ebitdaN1} budget={k.ebitdaB} pctN={k.ca?k.ebitda/k.ca:null} pctN1={k.caN1?k.ebitdaN1/k.caN1:null} highlight/></div></div></GC></div>);}
 
-const Input = ({ label, ...props }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-    {label && <label style={{ fontSize: 11, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</label>}
-    <input {...props} style={{
-      padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg,
-      color: T.text, fontSize: 14, outline: "none", ...(props.style || {}),
-    }} />
-  </div>
-);
+function AdminConsole({establishments:ests,setEstablishments:setE,users:usrs,setUsers:setU,onBack}){const[tab,setTab]=useState("users");const[modal,setModal]=useState(null);const[ed,setEd]=useState({});const tabs=[{id:"users",l:"Utilisateurs"},{id:"establishments",l:"Etablissements"},{id:"imports",l:"Imports"},{id:"coefs",l:"Coefs MP"}];const openEd=(t,d)=>{setEd({...d});setModal(t);};const saveEst=()=>{setE(p=>p.map(e=>e.id===ed.id?{...e,...ed}:e));setModal(null);};const saveUser=()=>{if(ed._new){const{_new,...u}=ed;setU(p=>[...p,u]);}else setU(p=>p.map(u=>u.login===ed.login?{...u,...ed}:u));setModal(null);};const saveCoef=()=>{setE(p=>p.map(e=>e.id===ed.id?{...e,...ed}:e));setModal(null);};
+return(<div><button onClick={onBack} style={{background:"none",border:"none",color:C.ac,fontSize:14,cursor:"pointer",fontWeight:500,marginBottom:16,fontFamily:"inherit"}}>&larr; Dashboard</button><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:C.ac,marginBottom:24}}>Console Admin</h2><div style={{display:"flex",gap:6,marginBottom:24,flexWrap:"wrap"}}>{tabs.map(t=><Btn key={t.id} small primary={tab===t.id} onClick={()=>setTab(t.id)}>{t.l}</Btn>)}</div>
 
-const Card = ({ children, style, onClick }) => (
-  <div onClick={onClick} style={{
-    background: T.card, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20,
-    transition: "all 0.2s", cursor: onClick ? "pointer" : "default",
-    ...(onClick ? { ":hover": { background: T.cardHover } } : {}), ...style,
-  }} onMouseEnter={e => { if (onClick) e.currentTarget.style.background = T.cardHover; e.currentTarget.style.borderColor = T.accent + "44"; }}
-     onMouseLeave={e => { e.currentTarget.style.background = T.card; e.currentTarget.style.borderColor = T.border; }}>
-    {children}
-  </div>
-);
+{tab==="users"&&<GC hover={false}><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr style={{borderBottom:`1px solid ${C.gb}`,color:C.mu,fontSize:11,textTransform:"uppercase"}}><th style={{textAlign:"left",padding:"8px 12px"}}>Login</th><th style={{textAlign:"left",padding:"8px 12px"}}>Nom</th><th style={{textAlign:"left",padding:"8px 12px"}}>Role</th><th style={{textAlign:"left",padding:"8px 12px"}}>Etab.</th><th style={{padding:"8px 12px"}}></th></tr></thead><tbody>{usrs.map(u=>(<tr key={u.login} style={{borderBottom:`1px solid ${C.gb}22`}}><td style={{padding:"10px 12px",fontWeight:500}}>{u.login}</td><td style={{padding:"10px 12px"}}>{u.name}</td><td style={{padding:"10px 12px"}}><span style={{padding:"2px 8px",borderRadius:6,fontSize:11,fontWeight:600,background:u.role==="admin"?C.ad:"rgba(96,165,250,0.1)",color:u.role==="admin"?C.ac:C.bl}}>{u.role}</span></td><td style={{padding:"10px 12px",fontSize:11,color:C.dm}}>{u.role==="admin"?"Tous":u.establishments.length}</td><td style={{padding:"10px 12px",textAlign:"center"}}><Btn small onClick={()=>openEd("user",u)}>Modifier</Btn></td></tr>))}</tbody></table></div><Btn primary style={{marginTop:16}} onClick={()=>{setEd({_new:true,login:"",password:"",name:"",role:"viewer",establishments:[]});setModal("user");}}>+ Ajouter un utilisateur</Btn></GC>}
 
-// ── BAR CHART (simple CSS) ──
-const MiniBar = ({ data, maxVal }) => {
-  if (!data || data.length === 0) return null;
-  const mx = maxVal || Math.max(...data.map(d => d.value), 1);
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 48 }}>
-      {data.map((d, i) => (
-        <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{
-            width: "100%", maxWidth: 28, borderRadius: "4px 4px 0 0",
-            height: Math.max(2, (d.value / mx) * 44),
-            background: d.highlight ? T.accent : T.border, transition: "height 0.3s",
-          }} title={`${d.label}: ${fmtEur(d.value)}`} />
-        </div>
-      ))}
-    </div>
-  );
-};
+{tab==="establishments"&&<GC hover={false}><div style={{display:"grid",gap:8}}>{ests.map(est=>(<div key={est.id} style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",padding:"12px 16px",borderRadius:10,background:C.bg,border:`1px solid ${C.gb}`,fontSize:13}}><div style={{fontWeight:600,minWidth:140}}>{est.name}</div><div style={{color:C.dm,fontSize:12}}>Loyer: {est.loyerType==="variable"?fmtPct(est.loyerPctCA)+" CA":fmtEur(est.loyerAnnuel)}</div><div style={{color:C.dm,fontSize:12}}>IG: {est.igType==="variable"?fmtPct(est.igPctCA)+" CA":fmtEur(est.igAnnuel)}</div><div style={{color:C.dm,fontSize:12}}>{est.dateOuv} &rarr; {est.dateFerm}</div><Btn small style={{marginLeft:"auto"}} onClick={()=>openEd("est",est)}>Modifier</Btn></div>))}</div></GC>}
 
-// ── LOGIN ──
-function LoginScreen({ onLogin }) {
-  const [login, setLogin] = useState("");
-  const [pw, setPw] = useState("");
-  const [err, setErr] = useState("");
-  const handleSubmit = () => {
-    const u = USERS.find(u => u.login === login && u.password === pw);
-    if (u) onLogin(u); else setErr("Identifiants incorrects");
-  };
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: T.bg }}>
-      <div className="fade-in" style={{ width: 380, maxWidth: "90vw" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontWeight: 700, color: T.accent, letterSpacing: 2 }}>INDIE GROUP</div>
-          <div style={{ fontSize: 13, color: T.textMuted, marginTop: 8, letterSpacing: 3, textTransform: "uppercase" }}>Reporting Dashboard</div>
-        </div>
-        <Card>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Input label="Identifiant" value={login} onChange={e => setLogin(e.target.value)} placeholder="antoine" onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-            <Input label="Mot de passe" type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="••••••" onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-            {err && <div style={{ color: T.red, fontSize: 13 }}>{err}</div>}
-            <button onClick={handleSubmit} style={{
-              padding: "12px 0", borderRadius: 10, border: "none", background: T.accent, color: T.bg,
-              fontSize: 14, fontWeight: 600, cursor: "pointer", letterSpacing: 1, marginTop: 8,
-            }}>CONNEXION</button>
-            <div style={{ fontSize: 11, color: T.textMuted, textAlign: "center" }}>
-              Demo: antoine / admin · associe1 / demo · associe2 / demo
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
+{tab==="imports"&&<GC hover={false}><div style={{display:"grid",gap:10}}>{[{src:"Mealenium",desc:"CA, couverts, TM, offerts, remises",scope:"N + N-1",fmt:"CSV/XLSX",freq:"Auto (email nuit)"},{src:"PayFit",desc:"Masse salariale par jour",scope:"N",fmt:"CSV",freq:"Mensuel"},{src:"Silae",desc:"Masse salariale (autres etab.)",scope:"N + N-1",fmt:"CSV",freq:"Mensuel"},{src:"GSheet - Previ CA",desc:"CA previsionnel / jour",scope:"Budget",fmt:"API Sync",freq:"Temps reel"},{src:"GSheet - Extras",desc:"Extras par directeur / RH",scope:"N + N-1",fmt:"API Sync",freq:"Temps reel"},{src:"GSheet - Refac MS",desc:"Refacturation inter-etab.",scope:"N + N-1",fmt:"API Sync",freq:"Temps reel"},{src:"GSheet - Logements",desc:"Montant journalier",scope:"N + N-1 + Budget",fmt:"API Sync",freq:"Temps reel"},{src:"GSheet - DJ/Secu",desc:"DJ, securite, light, hotel",scope:"N + N-1",fmt:"API Sync",freq:"Temps reel"}].map((s,i)=>(<div key={i} style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",padding:"12px 16px",borderRadius:10,background:C.bg,border:`1px solid ${C.gb}`,fontSize:12}}><div style={{fontWeight:600,color:C.ac,minWidth:140}}>{s.src}</div><div style={{color:C.dm,flex:1,minWidth:150}}>{s.desc}</div><span style={{padding:"2px 8px",borderRadius:6,background:C.ad,color:C.ac,fontSize:10,fontWeight:600}}>{s.scope}</span><span style={{color:C.mu,fontSize:11}}>{s.fmt}</span><span style={{color:C.mu,fontSize:11}}>{s.freq}</span><label style={{cursor:"pointer"}}><input type="file" style={{display:"none"}} onChange={()=>alert("Import recu - traitement simule")}/><span style={{padding:"6px 14px",borderRadius:8,background:C.ad,color:C.ac,fontSize:11,fontWeight:600,cursor:"pointer"}}>Importer</span></label></div>))}</div><div style={{marginTop:20,padding:16,borderRadius:12,background:"rgba(251,146,60,0.08)",border:"1px solid rgba(251,146,60,0.15)"}}><div style={{fontSize:12,fontWeight:600,color:C.or}}>Import automatique par email</div><div style={{fontSize:12,color:C.dm,marginTop:4}}>Email dedie (ex: import@indie-reporting.com) - script CRON nocturne parse les PJ Mealenium et injecte les donnees N et N-1.</div></div></GC>}
 
-// ── DATE FILTERS ──
-function DateFilters({ from, to, onRange }) {
-  const today = new Date().toISOString().split("T")[0];
-  const presets = [
-    { label: "Aujourd'hui", fn: () => { onRange(today, today); } },
-    { label: "Semaine", fn: () => { const [a, b] = getWeekRange(today); onRange(a, b); } },
-    { label: "Mois", fn: () => { const [a, b] = getMonthRange(today); onRange(a, b); } },
-    { label: "Saison", fn: () => { onRange("2026-04-01", "2026-10-31"); } },
-  ];
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
-      <Input label="Du" type="date" value={from} onChange={e => onRange(e.target.value, to)} style={{ width: 150 }} />
-      <Input label="Au" type="date" value={to} onChange={e => onRange(from, e.target.value)} style={{ width: 150 }} />
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        {presets.map(p => <Pill key={p.label} label={p.label} onClick={p.fn} />)}
-      </div>
-    </div>
-  );
-}
+{tab==="coefs"&&<GC hover={false}><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr style={{borderBottom:`1px solid ${C.gb}`,color:C.mu,fontSize:10,textTransform:"uppercase"}}><th style={{textAlign:"left",padding:"8px 12px"}}>Etablissement</th><th style={{textAlign:"center",padding:"8px 12px"}}>Liq. N</th><th style={{textAlign:"center",padding:"8px 12px"}}>Sol. N</th><th style={{textAlign:"center",padding:"8px 12px"}}>Liq. N-1</th><th style={{textAlign:"center",padding:"8px 12px"}}>Sol. N-1</th><th style={{textAlign:"center",padding:"8px 12px"}}>Liq. Budget</th><th style={{textAlign:"center",padding:"8px 12px"}}>Sol. Budget</th><th style={{padding:"8px 12px"}}></th></tr></thead><tbody>{ests.map(est=>(<tr key={est.id} style={{borderBottom:`1px solid ${C.gb}22`}}><td style={{padding:"10px 12px",fontWeight:500}}>{est.name}</td>{["coefLiquide","coefSolide","coefLiquideN1","coefSolideN1","coefLiquideBudget","coefSolideBudget"].map(f=>(<td key={f} style={{padding:"10px 12px",textAlign:"center"}}><span style={{padding:"4px 10px",borderRadius:6,background:C.bg,border:`1px solid ${C.gb}`,display:"inline-block",minWidth:55,fontSize:12}}>{fmtPct(est[f])}</span></td>))}<td style={{padding:"10px 12px",textAlign:"center"}}><Btn small onClick={()=>openEd("coef",est)}>Edit</Btn></td></tr>))}</tbody></table></div></GC>}
 
-// ── KPI ROW ──
-function KpiRow({ label, n, n1, previ, pctCA_N, pctCA_N1, inverse, isEbitda }) {
-  const varN1 = pctVar(n, n1);
-  const varPrevi = pctVar(n, previ);
-  return (
-    <div style={{
-      display: "grid", gridTemplateColumns: "1fr 1fr 70px 1fr 70px 70px 70px", gap: 8, alignItems: "center",
-      padding: "10px 0", borderBottom: `1px solid ${T.border}22`, fontSize: 13,
-    }}>
-      <div style={{ fontWeight: isEbitda ? 700 : 500, color: isEbitda ? T.accent : T.text }}>{label}</div>
-      <div style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtEur(n)}</div>
-      <div style={{ textAlign: "right", color: T.textMuted }}>{pctCA_N != null ? fmtPct(pctCA_N) : ""}</div>
-      <div style={{ textAlign: "right", color: T.textDim, fontVariantNumeric: "tabular-nums" }}>{fmtEur(n1)}</div>
-      <div style={{ textAlign: "right", color: T.textDim }}>{pctCA_N1 != null ? fmtPct(pctCA_N1) : ""}</div>
-      <div style={{ textAlign: "right" }}><Badge value={varN1} inverse={inverse} /></div>
-      <div style={{ textAlign: "right" }}><Badge value={varPrevi} inverse={inverse} /></div>
-    </div>
-  );
-}
+{modal==="user"&&<Modal title={ed._new?"Nouvel utilisateur":"Modifier "+ed.name} onClose={()=>setModal(null)}><div style={{display:"grid",gap:14}}><Fld label="Login"><Inp value={ed.login||""} onChange={e=>setEd(d=>({...d,login:e.target.value}))}/></Fld><Fld label="Nom"><Inp value={ed.name||""} onChange={e=>setEd(d=>({...d,name:e.target.value}))}/></Fld><Fld label="Mot de passe"><Inp type="password" value={ed.password||""} onChange={e=>setEd(d=>({...d,password:e.target.value}))}/></Fld><Fld label="Role"><Sel value={ed.role||"viewer"} onChange={e=>setEd(d=>({...d,role:e.target.value}))}><option value="admin">Admin</option><option value="viewer">Viewer</option></Sel></Fld><Fld label="Etablissements"><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{ests.map(est=>{const sel=(ed.establishments||[]).includes(est.id);return<button key={est.id} onClick={()=>setEd(d=>({...d,establishments:sel?d.establishments.filter(x=>x!==est.id):[...(d.establishments||[]),est.id]}))} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${sel?C.ac:C.gb}`,background:sel?C.ad:"transparent",color:sel?C.ac:C.dm,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{est.name}</button>;})}</div></Fld><Btn primary onClick={saveUser}>Enregistrer</Btn></div></Modal>}
 
-// ── ESTABLISHMENT DETAIL VIEW ──
-function EstablishmentDetail({ est, from, to, onBack }) {
-  const data = DEMO_DATA[est.id];
-  const nData = filterByDateRange(data.n, from, to);
-  const fromN1 = shiftDateN1(from); const toN1 = shiftDateN1(to);
-  const n1Data = filterByDateRange(data.n1, fromN1, toN1);
-  const budgetData = filterByDateRange(data.budget || [], fromN1, toN1);
-  const previData = filterByDateRange(data.previCA || [], fromN1, toN1);
+{modal==="est"&&<Modal title={"Modifier "+ed.name} onClose={()=>setModal(null)} wide><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}><Fld label="Date ouverture"><Inp type="date" value={ed.dateOuv||""} onChange={e=>setEd(d=>({...d,dateOuv:e.target.value}))}/></Fld><Fld label="Date fermeture"><Inp type="date" value={ed.dateFerm||""} onChange={e=>setEd(d=>({...d,dateFerm:e.target.value}))}/></Fld><Fld label="Type loyer"><Sel value={ed.loyerType||"fixe"} onChange={e=>setEd(d=>({...d,loyerType:e.target.value}))}><option value="fixe">Fixe</option><option value="variable">Variable (% CA)</option></Sel></Fld>{ed.loyerType==="fixe"?<Fld label="Loyer annuel"><Inp type="number" value={ed.loyerAnnuel||0} onChange={e=>setEd(d=>({...d,loyerAnnuel:+e.target.value}))}/></Fld>:<Fld label="Loyer % CA"><Inp type="number" step="0.01" value={ed.loyerPctCA||0} onChange={e=>setEd(d=>({...d,loyerPctCA:+e.target.value}))}/></Fld>}<Fld label="Type IG"><Sel value={ed.igType||"fixe"} onChange={e=>setEd(d=>({...d,igType:e.target.value}))}><option value="fixe">Fixe</option><option value="variable">Variable (% CA)</option></Sel></Fld>{ed.igType==="fixe"?<Fld label="IG annuel"><Inp type="number" value={ed.igAnnuel||0} onChange={e=>setEd(d=>({...d,igAnnuel:+e.target.value}))}/></Fld>:<Fld label="IG % CA"><Inp type="number" step="0.01" value={ed.igPctCA||0} onChange={e=>setEd(d=>({...d,igPctCA:+e.target.value}))}/></Fld>}<Fld label="Autres charges annuel"><Inp type="number" value={ed.autresChargesAnnuel||0} onChange={e=>setEd(d=>({...d,autresChargesAnnuel:+e.target.value}))}/></Fld><Fld label="Nbr jours saison"><Inp type="number" value={ed.nbrJours||0} onChange={e=>setEd(d=>({...d,nbrJours:+e.target.value}))}/></Fld></div><Btn primary onClick={saveEst} style={{marginTop:20}}>Enregistrer</Btn></Modal>}
 
-  const ca = sumField(nData, "ca");
-  const caN1 = sumField(n1Data, "ca");
-  const caPrevi = sumField(previData, "previ") || sumField(budgetData, "ca");
-  const ms = sumField(nData, "ms"); const msN1 = sumField(n1Data, "ms");
-  const extra = sumField(nData, "extra"); const extraN1 = sumField(n1Data, "extra");
-  const log = sumField(nData, "logement"); const logN1 = sumField(n1Data, "logement");
-  const msTotal = ms + extra + log; const msTotalN1 = msN1 + extraN1 + logN1;
-  const dj = sumField(nData, "dj"); const djN1 = sumField(n1Data, "dj");
-  const secu = sumField(nData, "secu"); const secuN1 = sumField(n1Data, "secu");
-  const light = sumField(nData, "light"); const lightN1 = sumField(n1Data, "light");
-  const hotel = sumField(nData, "hotel"); const hotelN1 = sumField(n1Data, "hotel");
-  const djSecuTotal = dj + secu + light + hotel;
-  const djSecuN1 = djN1 + secuN1 + lightN1 + hotelN1;
-  const nbrJours = nData.length || est.nbrJours;
-  const achatMP = Math.round(ca * est.coefSolide);
-  const achatMPN1 = Math.round(caN1 * est.coefSolide);
-  const loyer = est.loyerType === "variable" ? Math.round(ca * (est.loyerPctCA || 0.05)) : Math.round(est.loyerAnnuel / est.nbrJours * nbrJours);
-  const loyerN1 = est.loyerType === "variable" ? Math.round(caN1 * (est.loyerPctCA || 0.05)) : Math.round(est.loyerAnnuel / est.nbrJours * nbrJours);
-  const ig = est.igType === "variable" ? Math.round(ca * (est.igPctCA || 0.10)) : Math.round(est.igAnnuel / est.nbrJours * nbrJours);
-  const igN1 = est.igType === "variable" ? Math.round(caN1 * (est.igPctCA || 0.10)) : Math.round(est.igAnnuel / est.nbrJours * nbrJours);
-  const autresCharges = Math.round(est.autresChargesAnnuel / est.nbrJours * nbrJours);
-  const autresChargesN1 = autresCharges;
-  const ebitda = ca - msTotal - djSecuTotal - achatMP - loyer - ig - autresCharges;
-  const ebitdaN1 = caN1 - msTotalN1 - djSecuN1 - achatMPN1 - loyerN1 - igN1 - autresChargesN1;
+{modal==="coef"&&<Modal title={"Coefs MP - "+ed.name} onClose={()=>setModal(null)}><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>{[["coefLiquide","Liquide N"],["coefSolide","Solide N"],["coefLiquideN1","Liquide N-1"],["coefSolideN1","Solide N-1"],["coefLiquideBudget","Liquide Budget"],["coefSolideBudget","Solide Budget"]].map(([k,l])=>(<Fld key={k} label={l}><Inp type="number" step="0.01" value={ed[k]||0} onChange={e=>setEd(d=>({...d,[k]:+e.target.value}))}/></Fld>))}</div><Btn primary onClick={saveCoef} style={{marginTop:20}}>Enregistrer</Btn></Modal>}
 
-  const couverts = sumField(nData, "couverts"); const couvertsN1 = sumField(n1Data, "couverts");
-  const cvtMoyen = couverts > 0 ? ca / couverts : 0;
-  const cvtMoyenN1 = couvertsN1 > 0 ? caN1 / couvertsN1 : 0;
+</div>);}
 
-  // Daily CA chart data
-  const chartData = nData.slice(-14).map(d => ({ label: d.date.slice(5), value: d.ca, highlight: true }));
-
-  const msBudget = Math.round(caPrevi * 0.22);
-  const achatBudget = Math.round(caPrevi * est.coefSolide);
-
-  return (
-    <div className="fade-in" style={{ maxWidth: 960, margin: "0 auto" }}>
-      <button onClick={onBack} style={{
-        background: "none", border: "none", color: T.accent, fontSize: 14, cursor: "pointer",
-        display: "flex", alignItems: "center", gap: 6, marginBottom: 20, fontWeight: 500,
-      }}>← Retour</button>
-
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 24 }}>
-        <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: T.accent }}>{est.name}</h2>
-        <span style={{ fontSize: 12, color: T.textMuted }}>{from} → {to}</span>
-      </div>
-
-      {/* Top KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 24 }}>
-        {[
-          { label: "CA", val: ca, prev: caN1, previ: caPrevi },
-          { label: "Couverts", val: couverts, prev: couvertsN1 },
-          { label: "Ticket Moyen", val: Math.round(cvtMoyen), prev: Math.round(cvtMoyenN1) },
-          { label: "EBITDA", val: ebitda, prev: ebitdaN1 },
-        ].map((k, i) => (
-          <Card key={i} style={{ animationDelay: `${i * 0.05}s` }}>
-            <div style={{ fontSize: 11, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{k.label}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{k.label === "Couverts" ? fmt(k.val) : fmtEur(k.val)}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
-              <Badge value={pctVar(k.val, k.prev)} />
-              <span style={{ fontSize: 11, color: T.textMuted }}>vs N-1</span>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* CA trend mini chart */}
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>CA journalier (14 derniers jours)</div>
-        <MiniBar data={chartData} />
-      </Card>
-
-      {/* P&L Detail */}
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>P&L Détaillé</div>
-        <div style={{ overflowX: "auto" }}>
-          <div style={{ minWidth: 640 }}>
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr 70px 1fr 70px 70px 70px", gap: 8,
-              padding: "8px 0", borderBottom: `1px solid ${T.border}`, fontSize: 11, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1,
-            }}>
-              <div>Ligne</div><div style={{ textAlign: "right" }}>N</div><div style={{ textAlign: "right" }}>% CA</div>
-              <div style={{ textAlign: "right" }}>N-1</div><div style={{ textAlign: "right" }}>% CA</div>
-              <div style={{ textAlign: "right" }}>Var N-1</div><div style={{ textAlign: "right" }}>Var Prévi</div>
-            </div>
-            <KpiRow label="CA" n={ca} n1={caN1} previ={caPrevi} />
-            <KpiRow label="MS (paie)" n={ms} n1={msN1} previ={msBudget * 0.8} pctCA_N={ca ? ms / ca : null} pctCA_N1={caN1 ? msN1 / caN1 : null} inverse />
-            <KpiRow label="Extras" n={extra} n1={extraN1} previ={msBudget * 0.05} pctCA_N={ca ? extra / ca : null} pctCA_N1={caN1 ? extraN1 / caN1 : null} inverse />
-            <KpiRow label="Logement" n={log} n1={logN1} previ={msBudget * 0.02} pctCA_N={ca ? log / ca : null} pctCA_N1={caN1 ? logN1 / caN1 : null} inverse />
-            <KpiRow label="MS + Log Total" n={msTotal} n1={msTotalN1} previ={msBudget} pctCA_N={ca ? msTotal / ca : null} pctCA_N1={caN1 ? msTotalN1 / caN1 : null} inverse />
-            <KpiRow label="DJ / Sécu / Light / Hôtel" n={djSecuTotal} n1={djSecuN1} previ={djSecuN1 * 1.1} pctCA_N={ca ? djSecuTotal / ca : null} pctCA_N1={caN1 ? djSecuN1 / caN1 : null} inverse />
-            <KpiRow label="Achat MP" n={achatMP} n1={achatMPN1} previ={achatBudget} pctCA_N={ca ? achatMP / ca : null} pctCA_N1={caN1 ? achatMPN1 / caN1 : null} inverse />
-            <KpiRow label="Loyer" n={loyer} n1={loyerN1} previ={loyerN1} pctCA_N={ca ? loyer / ca : null} pctCA_N1={caN1 ? loyerN1 / caN1 : null} inverse />
-            <KpiRow label="IG" n={ig} n1={igN1} previ={igN1} pctCA_N={ca ? ig / ca : null} pctCA_N1={caN1 ? igN1 / caN1 : null} inverse />
-            <KpiRow label="Autres Charges" n={autresCharges} n1={autresChargesN1} previ={autresChargesN1} pctCA_N={ca ? autresCharges / ca : null} pctCA_N1={caN1 ? autresChargesN1 / caN1 : null} inverse />
-            <KpiRow label="EBITDA" n={ebitda} n1={ebitdaN1} previ={caPrevi - msBudget - achatBudget - loyerN1 - igN1 - autresChargesN1 - djSecuN1 * 1.1}
-              pctCA_N={ca ? ebitda / ca : null} pctCA_N1={caN1 ? ebitdaN1 / caN1 : null} isEbitda />
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// ── ADMIN CONSOLE ──
-function AdminConsole({ onBack }) {
-  const [tab, setTab] = useState("users");
-  const [editEst, setEditEst] = useState(null);
-  const tabs = [
-    { id: "users", label: "Utilisateurs" },
-    { id: "establishments", label: "Établissements" },
-    { id: "imports", label: "Imports" },
-    { id: "coefs", label: "Coefs MP" },
-  ];
-
-  return (
-    <div className="fade-in" style={{ maxWidth: 960, margin: "0 auto" }}>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: T.accent, fontSize: 14, cursor: "pointer", marginBottom: 20, fontWeight: 500 }}>← Dashboard</button>
-      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: T.accent, marginBottom: 24 }}>Console Admin</h2>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        {tabs.map(t => <Pill key={t.id} label={t.label} active={tab === t.id} onClick={() => setTab(t.id)} />)}
-      </div>
-
-      {tab === "users" && (
-        <Card>
-          <div style={{ fontSize: 12, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Gestion des utilisateurs</div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${T.border}`, color: T.textMuted, fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Login</th>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Nom</th>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Rôle</th>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Établissements</th>
-                  <th style={{ padding: "8px 12px" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {USERS.map(u => (
-                  <tr key={u.login} style={{ borderBottom: `1px solid ${T.border}22` }}>
-                    <td style={{ padding: "10px 12px", fontWeight: 500 }}>{u.login}</td>
-                    <td style={{ padding: "10px 12px" }}>{u.name}</td>
-                    <td style={{ padding: "10px 12px" }}>
-                      <span style={{ padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: u.role === "admin" ? T.accentDim : T.blueBg, color: u.role === "admin" ? T.accent : T.blue }}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td style={{ padding: "10px 12px", fontSize: 11, color: T.textDim }}>
-                      {u.role === "admin" ? "Tous" : u.establishments.length + " étab."}
-                    </td>
-                    <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                      <button style={{ background: "none", border: `1px solid ${T.border}`, color: T.textDim, padding: "4px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Modifier</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <button style={{ marginTop: 16, padding: "10px 20px", borderRadius: 8, border: `1px solid ${T.accent}`, background: "transparent", color: T.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-            + Ajouter un utilisateur
-          </button>
-        </Card>
-      )}
-
-      {tab === "establishments" && (
-        <Card>
-          <div style={{ fontSize: 12, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Paramétrage des établissements</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {ESTABLISHMENTS.map(est => (
-              <div key={est.id} style={{
-                display: "grid", gridTemplateColumns: "1fr 120px 120px 120px 80px", gap: 12, alignItems: "center",
-                padding: "12px 16px", borderRadius: 10, background: T.bg, border: `1px solid ${T.border}`, fontSize: 13,
-              }}>
-                <div style={{ fontWeight: 600 }}>{est.name}</div>
-                <div style={{ color: T.textDim }}>Loyer: {est.loyerType === "variable" ? fmtPct(est.loyerPctCA) + " CA" : fmtEur(est.loyerAnnuel)}</div>
-                <div style={{ color: T.textDim }}>IG: {est.igType === "variable" ? fmtPct(est.igPctCA) + " CA" : fmtEur(est.igAnnuel)}</div>
-                <div style={{ color: T.textDim }}>{est.dateOuv} → {est.dateFerm}</div>
-                <button style={{ background: "none", border: `1px solid ${T.border}`, color: T.textDim, padding: "4px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Edit</button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {tab === "imports" && (
-        <Card>
-          <div style={{ fontSize: 12, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Import de données</div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {[
-              { source: "Mealenium", desc: "Export caisse (CA, couverts, ticket moyen, offerts, remises)", format: "CSV / XLSX", freq: "Automatique (email nuit)" },
-              { source: "PayFit", desc: "Masse salariale détaillée par jour", format: "CSV", freq: "Mensuel" },
-              { source: "Silae", desc: "Masse salariale (établissements restants)", format: "CSV", freq: "Mensuel" },
-              { source: "Google Sheet – Prévi CA", desc: "CA prévisionnel par établissement / jour", format: "Sync API", freq: "Temps réel" },
-              { source: "Google Sheet – Extras", desc: "Extras saisis par directeurs / RH", format: "Sync API", freq: "Temps réel" },
-              { source: "Google Sheet – Refac MS", desc: "Refacturation masse salariale inter-étab.", format: "Sync API", freq: "Temps réel" },
-              { source: "Google Sheet – Logements", desc: "Montant journalier logement par étab.", format: "Sync API", freq: "Temps réel" },
-              { source: "Google Sheet – DJ / Sécu", desc: "Dépenses DJ, sécurité, light, hôtel", format: "Sync API", freq: "Temps réel" },
-            ].map((s, i) => (
-              <div key={i} style={{
-                display: "grid", gridTemplateColumns: "160px 1fr 100px 140px 100px", gap: 12, alignItems: "center",
-                padding: "12px 16px", borderRadius: 10, background: T.bg, border: `1px solid ${T.border}`, fontSize: 13,
-              }}>
-                <div style={{ fontWeight: 600, color: T.accent }}>{s.source}</div>
-                <div style={{ color: T.textDim }}>{s.desc}</div>
-                <div style={{ fontSize: 11, color: T.textMuted }}>{s.format}</div>
-                <div style={{ fontSize: 11, color: T.textMuted }}>{s.freq}</div>
-                <button style={{ background: T.accentDim, border: "none", color: T.accent, padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
-                  Importer
-                </button>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 20, padding: 16, borderRadius: 10, background: T.orangeBg, border: `1px solid ${T.orange}33` }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: T.orange, marginBottom: 6 }}>📧 Import automatique par email</div>
-            <div style={{ fontSize: 12, color: T.textDim }}>
-              Configurer un email dédié (ex: import@indie-reporting.com) pour recevoir les exports Mealenium chaque nuit.
-              Un script CRON parse les pièces jointes et injecte les données automatiquement.
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {tab === "coefs" && (
-        <Card>
-          <div style={{ fontSize: 12, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Coefficients Achat MP par établissement</div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${T.border}`, color: T.textMuted, fontSize: 11, textTransform: "uppercase" }}>
-                  <th style={{ textAlign: "left", padding: "8px 12px" }}>Établissement</th>
-                  <th style={{ textAlign: "center", padding: "8px 12px" }}>Coef Liquide</th>
-                  <th style={{ textAlign: "center", padding: "8px 12px" }}>Coef Solide</th>
-                  <th style={{ textAlign: "center", padding: "8px 12px" }}>Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ESTABLISHMENTS.map(est => (
-                  <tr key={est.id} style={{ borderBottom: `1px solid ${T.border}22` }}>
-                    <td style={{ padding: "10px 12px", fontWeight: 500 }}>{est.name}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                      <span style={{ padding: "4px 12px", borderRadius: 6, background: T.bg, border: `1px solid ${T.border}`, display: "inline-block", minWidth: 60 }}>
-                        {fmtPct(est.coefLiquide)}
-                      </span>
-                    </td>
-                    <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                      <span style={{ padding: "4px 12px", borderRadius: 6, background: T.bg, border: `1px solid ${T.border}`, display: "inline-block", minWidth: 60 }}>
-                        {fmtPct(est.coefSolide)}
-                      </span>
-                    </td>
-                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 11, color: T.textMuted }}>N-1 cumulé</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-// ── MAIN DASHBOARD ──
-function Dashboard({ user, from, to, onRange, onSelectEst, onAdmin, onLogout }) {
-  const userEstablishments = ESTABLISHMENTS.filter(e => user.establishments.includes(e.id));
-
-  // Aggregate group totals
-  const totals = useMemo(() => {
-    let totalCA = 0, totalCAN1 = 0, totalPrevi = 0, totalMS = 0, totalEbitda = 0, totalEbitdaN1 = 0;
-    userEstablishments.forEach(est => {
-      const d = DEMO_DATA[est.id];
-      const n = filterByDateRange(d.n, from, to);
-      const fromN1 = shiftDateN1(from); const toN1 = shiftDateN1(to);
-      const n1 = filterByDateRange(d.n1, fromN1, toN1);
-      const previArr = filterByDateRange(d.previCA || [], fromN1, toN1);
-      const ca = sumField(n, "ca"); const caN1 = sumField(n1, "ca");
-      const previ = sumField(previArr, "previ") || sumField(filterByDateRange(d.budget || [], fromN1, toN1), "ca");
-      const msT = sumField(n, "ms") + sumField(n, "extra") + sumField(n, "logement");
-      const msTN1 = sumField(n1, "ms") + sumField(n1, "extra") + sumField(n1, "logement");
-      const nbrJ = n.length || est.nbrJours;
-      const achat = ca * est.coefSolide;
-      const achatN1 = caN1 * est.coefSolide;
-      const loyer = est.loyerType === "variable" ? ca * (est.loyerPctCA || 0.05) : est.loyerAnnuel / est.nbrJours * nbrJ;
-      const loyerN1 = est.loyerType === "variable" ? caN1 * (est.loyerPctCA || 0.05) : est.loyerAnnuel / est.nbrJours * nbrJ;
-      const ig = est.igType === "variable" ? ca * (est.igPctCA || 0.10) : est.igAnnuel / est.nbrJours * nbrJ;
-      const igN1 = est.igType === "variable" ? caN1 * (est.igPctCA || 0.10) : est.igAnnuel / est.nbrJours * nbrJ;
-      const autres = est.autresChargesAnnuel / est.nbrJours * nbrJ;
-      const djS = sumField(n, "dj") + sumField(n, "secu") + sumField(n, "light") + sumField(n, "hotel");
-      const djSN1 = sumField(n1, "dj") + sumField(n1, "secu") + sumField(n1, "light") + sumField(n1, "hotel");
-      totalCA += ca; totalCAN1 += caN1; totalPrevi += previ; totalMS += msT;
-      totalEbitda += ca - msT - djS - achat - loyer - ig - autres;
-      totalEbitdaN1 += caN1 - msTN1 - djSN1 - achatN1 - loyerN1 - igN1 - autres;
-    });
-    return { totalCA, totalCAN1, totalPrevi, totalMS, totalEbitda, totalEbitdaN1 };
-  }, [from, to, userEstablishments]);
-
-  return (
-    <div className="fade-in">
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontWeight: 700, color: T.accent, letterSpacing: 1 }}>INDIE GROUP</div>
-          <div style={{ fontSize: 12, color: T.textMuted }}>{user.name} · {user.role === "admin" ? "Admin" : "Associé"}</div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {user.role === "admin" && (
-            <button onClick={onAdmin} style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.accent}`, background: "transparent", color: T.accent, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
-              ⚙ Admin
-            </button>
-          )}
-          <button onClick={onLogout} style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.border}`, background: "transparent", color: T.textDim, fontSize: 13, cursor: "pointer" }}>
-            Déconnexion
-          </button>
-        </div>
-      </div>
-
-      {/* Date filters */}
-      <div style={{ marginBottom: 28 }}>
-        <DateFilters from={from} to={to} onRange={onRange} />
-      </div>
-
-      {/* Group KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12, marginBottom: 28 }}>
-        {[
-          { label: "CA Groupe", val: totals.totalCA, prev: totals.totalCAN1, previ: totals.totalPrevi },
-          { label: "MS Groupe", val: totals.totalMS },
-          { label: "EBITDA Groupe", val: totals.totalEbitda, prev: totals.totalEbitdaN1 },
-          { label: "Marge EBITDA", val: totals.totalCA ? totals.totalEbitda / totals.totalCA : 0, isPct: true },
-        ].map((k, i) => (
-          <Card key={i}>
-            <div style={{ fontSize: 11, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{k.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: k.label.includes("EBITDA") && k.val < 0 ? T.red : T.text }}>
-              {k.isPct ? fmtPct(k.val) : fmtEur(k.val)}
-            </div>
-            {k.prev != null && (
-              <div style={{ marginTop: 6 }}><Badge value={pctVar(k.isPct ? k.val : k.val, k.prev)} /></div>
-            )}
-          </Card>
-        ))}
-      </div>
-
-      {/* Establishment cards */}
-      <div style={{ fontSize: 11, color: T.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>Établissements</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
-        {userEstablishments.map((est, i) => {
-          const d = DEMO_DATA[est.id];
-          const n = filterByDateRange(d.n, from, to);
-          const fromN1 = shiftDateN1(from); const toN1 = shiftDateN1(to);
-          const n1 = filterByDateRange(d.n1, fromN1, toN1);
-          const ca = sumField(n, "ca"); const caN1 = sumField(n1, "ca");
-          const ms = sumField(n, "ms") + sumField(n, "extra") + sumField(n, "logement");
-          const couverts = sumField(n, "couverts");
-          const pctMS = ca > 0 ? ms / ca : null;
-          const chartD = n.slice(-7).map(dd => ({ value: dd.ca, label: dd.date.slice(5), highlight: true }));
-
-          return (
-            <Card key={est.id} onClick={() => onSelectEst(est)} style={{ animationDelay: `${i * 0.03}s` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 15 }}>{est.name}</div>
-                  <div style={{ fontSize: 11, color: T.textMuted }}>{est.group === "ete" ? "Saison été" : "Saison hiver"}</div>
-                </div>
-                <Badge value={pctVar(ca, caN1)} />
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>{fmtEur(ca)}</div>
-              <div style={{ display: "flex", gap: 16, fontSize: 12, color: T.textDim, marginBottom: 12 }}>
-                <span>MS: {pctMS != null ? fmtPct(pctMS) : "–"}</span>
-                <span>{fmt(couverts)} cvts</span>
-              </div>
-              <MiniBar data={chartD} />
-              <div style={{ textAlign: "right", marginTop: 8 }}>
-                <span style={{ fontSize: 11, color: T.accent, fontWeight: 500 }}>Détail →</span>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ── APP ──
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [view, setView] = useState("dashboard"); // dashboard | detail | admin
-  const [selectedEst, setSelectedEst] = useState(null);
-  const today = new Date().toISOString().split("T")[0];
-  const [weekStart, weekEnd] = getWeekRange(today);
-  const [from, setFrom] = useState(weekStart);
-  const [to, setTo] = useState(weekEnd);
-
-  const handleRange = useCallback((f, t) => { setFrom(f); setTo(t); }, []);
-
-  if (!user) return <LoginScreen onLogin={u => setUser(u)} />;
-
-  if (view === "admin") return (
-    <div style={{ padding: "24px 20px", maxWidth: 1100, margin: "0 auto" }}>
-      <AdminConsole onBack={() => setView("dashboard")} />
-    </div>
-  );
-
-  if (view === "detail" && selectedEst) return (
-    <div style={{ padding: "24px 20px", maxWidth: 1100, margin: "0 auto" }}>
-      <DateFilters from={from} to={to} onRange={handleRange} />
-      <div style={{ height: 20 }} />
-      <EstablishmentDetail est={selectedEst} from={from} to={to} onBack={() => { setView("dashboard"); setSelectedEst(null); }} />
-    </div>
-  );
-
-  return (
-    <div style={{ padding: "24px 20px", maxWidth: 1100, margin: "0 auto" }}>
-      <Dashboard
-        user={user} from={from} to={to} onRange={handleRange}
-        onSelectEst={est => { setSelectedEst(est); setView("detail"); }}
-        onAdmin={() => setView("admin")}
-        onLogout={() => { setUser(null); setView("dashboard"); }}
-      />
-    </div>
-  );
-}
+export default function App(){const[user,setUser]=useState(null);const[view,setView]=useState("dashboard");const[selEst,setSelEst]=useState(null);const[ests,setEsts]=useState(INIT_ESTABLISHMENTS);const[usrs,setUsrs]=useState(INIT_USERS);const[cm,setCm]=useState("periode");const today=new Date().toISOString().split("T")[0];const[wS,wE]=wr(today);const[from,setFrom]=useState(wS);const[to,setTo]=useState(wE);const onR=useCallback((f,t)=>{setFrom(f);setTo(t);},[]);const demo=useMemo(()=>buildDemo(ests),[ests]);const uEsts=useMemo(()=>user?ests.filter(e=>user.establishments.includes(e.id)):[],[user,ests]);const allK=useMemo(()=>{const r={};uEsts.forEach(est=>{if(demo[est.id])r[est.id]=calcKPI(est,demo[est.id],from,to);});return r;},[uEsts,demo,from,to]);const gK=useMemo(()=>{let ca=0,caN1=0,caP=0,ms=0,msN1=0,ebitda=0,ebitdaN1=0;Object.values(allK).forEach(k=>{ca+=k.ca;caN1+=k.caN1;caP+=k.caP;ms+=k.ms;msN1+=k.msN1;ebitda+=k.ebitda;ebitdaN1+=k.ebitdaN1;});return{ca,caN1,caP,ms,msN1,ebitda,ebitdaN1};},[allK]);
+if(!user)return<LoginScreen onLogin={setUser} users={usrs}/>;
+return(<div style={{minHeight:"100vh",background:`radial-gradient(ellipse at 20% 0%,rgba(212,168,83,0.04),transparent 40%),${C.bg}`,fontFamily:"'DM Sans',sans-serif",color:C.tx}}><div style={{maxWidth:1140,margin:"0 auto",padding:"20px 20px 40px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:12}}><div style={{cursor:"pointer"}} onClick={()=>{setView("dashboard");setSelEst(null);}}><span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:C.ac,letterSpacing:2}}>INDIE GROUP</span><span style={{fontSize:11,color:C.mu,marginLeft:12}}>{user.name}</span></div><div style={{display:"flex",gap:8}}>{user.role==="admin"&&<Btn small onClick={()=>setView("admin")}>Admin</Btn>}<Btn small onClick={()=>{setUser(null);setView("dashboard");}}>Deconnexion</Btn></div></div>{view!=="admin"&&<DateBar from={from} to={to} onRange={onR} compMode={cm} setCompMode={setCm}/>}{view==="admin"&&<AdminConsole establishments={ests} setEstablishments={setEsts} users={usrs} setUsers={setUsrs} onBack={()=>setView("dashboard")}/>}{view==="dashboard"&&<><GroupBar kpis={gK}/><div style={{fontSize:11,color:C.mu,textTransform:"uppercase",letterSpacing:2,marginBottom:12}}>Etablissements ({cm==="periode"?"Periode selectionnee":cm==="cumule"?"Cumule depuis ouverture":"Atterrissage saison"})</div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>{uEsts.map(est=>allK[est.id]&&<EstCard key={est.id} est={est} kpis={allK[est.id]} onClick={()=>{setSelEst(est);setView("detail");}}/>)}</div></>}{view==="detail"&&selEst&&allK[selEst.id]&&<DetailView est={selEst} kpis={allK[selEst.id]} onBack={()=>{setView("dashboard");setSelEst(null);}}/>}</div></div>);}
